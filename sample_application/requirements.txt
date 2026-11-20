@@ -1,0 +1,10 @@
+# Sample application only (for running the app on its own, e.g. in a container).
+# Inside this repo the same packages come from pyproject.toml's "app" dependency group.
+fastapi>=0.115,<1
+uvicorn[standard]>=0.32,<1
+sqlalchemy>=2.0.36,<3
+jinja2>=3.1,<4
+python-multipart>=0.0.17
+pyjwt>=2.10,<3
+bcrypt>=4.2,<6
+python-dotenv>=1.0,<2

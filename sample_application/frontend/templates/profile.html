@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field %}
+{% block title %}Profile{% endblock %}
+{% block content %}
+<h1>My profile</h1>
+<div class="grid-2">
+  <section class="card" aria-labelledby="details-heading">
+    <h2 id="details-heading">Personal details</h2>
+    <p>Email: <strong data-testid="profile-email">{{ current_user.email }}</strong></p>
+    <form method="post" action="/profile" novalidate data-testid="profile-form">
+      {{ field("full_name", "Full name", form, errors, required=true) }}
+      {{ field("phone", "Phone", form, errors, type="tel") }}
+      <button type="submit" class="btn btn-primary">Save profile</button>
+    </form>
+  </section>
+
+  <section class="card" aria-labelledby="password-heading">
+    <h2 id="password-heading">Change password</h2>
+    <form method="post" action="/profile/password" novalidate data-testid="password-form">
+      {{ field("current_password", "Current password", {}, pw_errors, type="password", required=true, autocomplete="current-password") }}
+      {{ field("new_password", "New password", {}, pw_errors, type="password", required=true, autocomplete="new-password") }}
+      {{ field("confirm_password", "Confirm new password", {}, pw_errors, type="password", required=true, autocomplete="new-password") }}
+      <button type="submit" class="btn btn-primary">Change password</button>
+    </form>
+  </section>
+
+  <section class="card" aria-labelledby="avatar-heading">
+    <h2 id="avatar-heading">Profile picture</h2>
+    {% if current_user.has_avatar %}
+    <img src="/profile/avatar?v={{ current_user.updated_at.timestamp()|int }}" alt="Profile picture" class="avatar" data-testid="avatar-image">
+    {% else %}
+    <p class="muted" data-testid="avatar-empty">No picture uploaded.</p>
+    {% endif %}
+    <form method="post" action="/profile/avatar" enctype="multipart/form-data" data-testid="avatar-form">
+      <div class="field{% if avatar_error %} has-error{% endif %}">
+        <label for="avatar-file">Choose image (PNG or JPEG, max 1 MB)</label>
+        <input id="avatar-file" name="file" type="file" accept="image/png,image/jpeg" data-testid="avatar-input">
+        {% if avatar_error %}<p class="error" role="alert" data-testid="avatar-error">{{ avatar_error }}</p>{% endif %}
+      </div>
+      <button type="submit" class="btn btn-primary">Upload picture</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

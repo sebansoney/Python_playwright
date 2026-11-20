@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "sample-app",
+      "runtimeExecutable": ".venv/Scripts/python.exe",
+      "runtimeArgs": ["-m", "sample_application", "--env", "test", "--reset-db", "--port", "8000"],
+      "port": 8000
+    },
+    {
+      "name": "sample-report",
+      "runtimeExecutable": ".venv/Scripts/python.exe",
+      "runtimeArgs": ["-m", "http.server", "8090", "--bind", "127.0.0.1", "--directory", "docs/sample-report"],
+      "port": 8090
+    }
+  ]
+}

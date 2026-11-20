@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Sample Shop Admin{% endblock %} · Sample Shop Admin</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" data-testid="brand">Sample Shop Admin</a>
+    {% if current_user %}
+    <nav aria-label="Main" data-testid="main-nav">
+      <a href="/dashboard" {% if request.url.path == '/dashboard' %}aria-current="page"{% endif %}>Dashboard</a>
+      <a href="/products" {% if request.url.path.startswith('/products') %}aria-current="page"{% endif %}>Products</a>
+      {% if current_user.role == 'admin' %}
+      <a href="/users" {% if request.url.path.startswith('/users') %}aria-current="page"{% endif %}>Users</a>
+      {% endif %}
+      <a href="/tools" {% if request.url.path == '/tools' %}aria-current="page"{% endif %}>Tools</a>
+      <a href="/profile" {% if request.url.path == '/profile' %}aria-current="page"{% endif %}>Profile</a>
+    </nav>
+    <div class="user-menu">
+      <span data-testid="current-user">{{ current_user.full_name }}</span>
+      <span class="badge" data-testid="current-role">{{ current_user.role }}</span>
+      <form method="post" action="/logout" class="inline">
+        <button type="submit" class="btn btn-link">Log out</button>
+      </form>
+    </div>
+    {% endif %}
+  </header>
+
+  <main class="container" id="main">
+    {% if flash %}
+    <div class="flash flash-{{ flash[0] }}" role="status" data-testid="flash-message">{{ flash[1] }}</div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <script src="/static/js/app.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

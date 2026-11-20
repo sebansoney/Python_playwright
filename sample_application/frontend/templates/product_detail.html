@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }}{% endblock %}
+{% block content %}
+<section class="card narrow" data-testid="product-detail">
+  <h1>{{ product.name }}</h1>
+  <dl class="details">
+    <dt>SKU</dt><dd data-testid="detail-sku">{{ product.sku }}</dd>
+    <dt>Category</dt><dd data-testid="detail-category">{{ product.category }}</dd>
+    <dt>Price</dt><dd data-testid="detail-price">{{ "%.2f"|format(product.price) }}</dd>
+    <dt>Stock</dt><dd data-testid="detail-stock">{{ product.stock }}</dd>
+    <dt>Description</dt><dd data-testid="detail-description">{{ product.description or "—" }}</dd>
+  </dl>
+  <div class="form-actions">
+    <a class="btn btn-primary" href="/products/{{ product.id }}/edit">Edit</a>
+    <a class="btn" href="/products">Back to products</a>
+  </div>
+</section>
+{% endblock %}

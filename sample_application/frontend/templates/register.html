@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field %}
+{% block title %}Register{% endblock %}
+{% block content %}
+<section class="card narrow">
+  <h1>Create an account</h1>
+  <form method="post" action="/register" novalidate data-testid="register-form">
+    {{ field("full_name", "Full name", form, errors, required=true, autocomplete="name") }}
+    {{ field("email", "Email", form, errors, type="email", required=true, autocomplete="email") }}
+    {{ field("password", "Password", form, errors, type="password", required=true, autocomplete="new-password") }}
+    <p class="hint" id="password-hint">8-64 characters, at least one letter and one number.</p>
+    {{ field("confirm_password", "Confirm password", form, errors, type="password", required=true, autocomplete="new-password") }}
+    <button type="submit" class="btn btn-primary">Register</button>
+  </form>
+  <p class="muted">Already registered? <a href="/login">Log in</a></p>
+</section>
+{% endblock %}

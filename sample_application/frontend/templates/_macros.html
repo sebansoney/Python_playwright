@@ -1,0 +1,45 @@
+{# Reusable form field: label + input + inline error, wired with aria-describedby. #}
+{% macro field(name, label, form, errors, type="text", required=false, autocomplete=None, extra="") -%}
+<div class="field{% if errors.get(name) %} has-error{% endif %}">
+  <div class="label-row"><label for="{{ name }}">{{ label }}</label>{% if required %}<span class="required-mark" aria-hidden="true">*</span>{% endif %}</div>
+  <input id="{{ name }}" name="{{ name }}" type="{{ type }}"
+         value="{{ form.get(name, '') if type != 'password' else '' }}"
+         {% if autocomplete %}autocomplete="{{ autocomplete }}"{% endif %}
+         {% if errors.get(name) %}aria-invalid="true" aria-describedby="{{ name }}-error"{% endif %}
+         data-testid="{{ name }}-input" {% if required %}required{% endif %} {{ extra|safe }}>
+  {% if errors.get(name) %}
+  <p class="error" id="{{ name }}-error" data-testid="{{ name }}-error">{{ errors[name] }}</p>
+  {% endif %}
+</div>
+{%- endmacro %}
+
+{% macro select(name, label, options, selected, errors, placeholder=None, required=false) -%}
+<div class="field{% if errors.get(name) %} has-error{% endif %}">
+  <div class="label-row"><label for="{{ name }}">{{ label }}</label>{% if required %}<span class="required-mark" aria-hidden="true">*</span>{% endif %}</div>
+  <select id="{{ name }}" name="{{ name }}" data-testid="{{ name }}-select" {% if required %}required{% endif %}
+          {% if errors.get(name) %}aria-invalid="true" aria-describedby="{{ name }}-error"{% endif %}>
+    {% if placeholder is not none %}<option value="">{{ placeholder }}</option>{% endif %}
+    {% for opt in options %}
+    <option value="{{ opt }}" {% if opt == selected %}selected{% endif %}>{{ opt }}</option>
+    {% endfor %}
+  </select>
+  {% if errors.get(name) %}
+  <p class="error" id="{{ name }}-error" data-testid="{{ name }}-error">{{ errors[name] }}</p>
+  {% endif %}
+</div>
+{%- endmacro %}
+
+{% macro pagination(page, pages, base_url, base_query="") -%}
+{% if pages > 1 %}
+<nav class="pagination" aria-label="Pagination" data-testid="pagination">
+  {% set sep = "&" if base_query else "" %}
+  {% if page > 1 %}
+  <a href="{{ base_url }}?{{ base_query }}{{ sep }}page={{ page - 1 }}" rel="prev">Previous</a>
+  {% endif %}
+  <span data-testid="page-info">Page {{ page }} of {{ pages }}</span>
+  {% if page < pages %}
+  <a href="{{ base_url }}?{{ base_query }}{{ sep }}page={{ page + 1 }}" rel="next">Next</a>
+  {% endif %}
+</nav>
+{% endif %}
+{%- endmacro %}

@@ -1,0 +1,32 @@
+# Python / tooling
+__pycache__/
+*.py[cod]
+.venv/
+.python/
+.playwright-browsers/
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+
+# Secrets - NEVER commit
+.env
+
+# Generated output (folders kept via .gitkeep)
+reports/*
+!reports/.gitkeep
+logs/*
+!logs/.gitkeep
+ai_drafts/*
+!ai_drafts/.gitkeep
+test-results/
+
+# Sample application runtime database
+sample_application/database/*.db
+sample_application/database/*.db-*
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db

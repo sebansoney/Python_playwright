@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% from "_macros.html" import pagination %}
+{% block title %}Users{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Users</h1>
+  <a class="btn btn-primary" href="/users/new">Add user</a>
+</div>
+
+<form method="get" action="/users" role="search" class="toolbar" data-testid="user-search-form">
+  <label for="q">Search users</label>
+  <input id="q" name="q" type="search" value="{{ q }}" placeholder="Name or email" data-testid="user-search-input">
+  <button type="submit" class="btn">Search</button>
+  {% if q %}<a href="/users">Clear</a>{% endif %}
+</form>
+
+<p data-testid="results-count">{{ total }} user{{ '' if total == 1 else 's' }} found</p>
+
+{% if users %}
+<table class="table" data-testid="users-table">
+  <thead>
+    <tr><th scope="col">Name</th><th scope="col">Email</th><th scope="col">Role</th><th scope="col">Status</th><th scope="col">Actions</th></tr>
+  </thead>
+  <tbody>
+    {% for u in users %}
+    <tr data-testid="user-row" data-user-id="{{ u.id }}">
+      <td>{{ u.full_name }}</td>
+      <td>{{ u.email }}</td>
+      <td>{{ u.role }}</td>
+      <td>{% if u.is_active %}<span class="badge badge-ok">Active</span>{% else %}<span class="badge badge-off">Inactive</span>{% endif %}</td>
+      <td class="actions">
+        <a href="/users/{{ u.id }}/edit" aria-label="Edit {{ u.full_name }}">Edit</a>
+        {% if u.id != current_user.id %}
+        <form method="post" action="/users/{{ u.id }}/delete" class="inline"
+              data-confirm="Delete user {{ u.full_name }}? This cannot be undone.">
+          <button type="submit" class="btn btn-link danger" aria-label="Delete {{ u.full_name }}">Delete</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty" data-testid="empty-state">No users match your search.</p>
+{% endif %}
+
+{{ pagination(page, pages, "/users", ("q=" ~ q|urlencode) if q else "") }}
+{% endblock %}

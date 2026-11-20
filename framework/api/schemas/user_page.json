@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sample-shop.test/user_page.json",
+  "title": "Paged list of users",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["items", "total", "page", "size", "pages"],
+  "properties": {
+    "items": {"type": "array", "items": {"$ref": "user.json"}},
+    "total": {"type": "integer", "minimum": 0},
+    "page": {"type": "integer", "minimum": 1},
+    "size": {"type": "integer", "minimum": 1, "maximum": 100},
+    "pages": {"type": "integer", "minimum": 1}
+  }
+}

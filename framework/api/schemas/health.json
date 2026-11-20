@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sample-shop.test/health.json",
+  "title": "Health check",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["status", "env", "version"],
+  "properties": {
+    "status": {"const": "ok"},
+    "env": {"type": "string"},
+    "version": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$"}
+  }
+}

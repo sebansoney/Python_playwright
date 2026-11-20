@@ -1,0 +1,12 @@
+# GitHub Actions (and any CI). Random test-account passwords come from the workflow env.
+app:
+  autostart: true          # the framework starts/stops the app itself (xdist-safe)
+  startup_timeout_s: 60
+
+retry:
+  max_reruns: 2            # shared runners: absorb rare infrastructure hiccups
+  delay_s: 2
+
+browser:
+  headless: true
+  video: "retain-on-failure"

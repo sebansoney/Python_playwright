@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field, select %}
+{% set editing = user is not none %}
+{% block title %}{{ "Edit user" if editing else "Add user" }}{% endblock %}
+{% block content %}
+<section class="card narrow">
+  <h1>{{ "Edit user" if editing else "Add user" }}</h1>
+  {% if errors.get("form") %}
+  <div class="alert alert-error" role="alert" data-testid="form-error">{{ errors["form"] }}</div>
+  {% endif %}
+  <form method="post" action="{{ '/users/%d/edit' % user.id if editing else '/users/new' }}" novalidate data-testid="user-form">
+    {{ field("full_name", "Full name", form, errors, required=true) }}
+    {{ field("email", "Email", form, errors, type="email", required=true) }}
+    {% if not editing %}
+    {{ field("password", "Password", form, errors, type="password", required=true, autocomplete="new-password") }}
+    {% endif %}
+    {{ field("phone", "Phone", form, errors, type="tel") }}
+    {{ select("role", "Role", ["user", "admin"], form.get("role", "user"), errors, required=true) }}
+    {% if editing %}
+    <div class="field checkbox">
+      <input id="is_active" name="is_active" type="checkbox" {% if form.get("is_active") %}checked{% endif %} data-testid="is_active-checkbox">
+      <label for="is_active">Active</label>
+    </div>
+    {% endif %}
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">{{ "Save changes" if editing else "Create user" }}</button>
+      <a href="/users" class="btn">Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

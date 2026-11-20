@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1>Dashboard</h1>
+<p data-testid="welcome-message">Welcome, {{ current_user.full_name }}!</p>
+
+<section class="stats" aria-label="Statistics">
+  <article class="stat" data-testid="stat-users">
+    <h2>Users</h2><p class="stat-value">{{ stats.users }}</p>
+  </article>
+  <article class="stat" data-testid="stat-products">
+    <h2>Products</h2><p class="stat-value">{{ stats.products }}</p>
+  </article>
+  <article class="stat" data-testid="stat-low-stock">
+    <h2>Low stock</h2><p class="stat-value">{{ stats.low_stock }}</p>
+  </article>
+  <article class="stat" data-testid="stat-categories">
+    <h2>Categories</h2><p class="stat-value">{{ stats.categories }}</p>
+  </article>
+</section>
+
+<section class="card">
+  <h2>Recently added products</h2>
+  <ul data-testid="recent-products">
+    {% for p in stats.recent_products %}
+    <li><a href="/products/{{ p.id }}">{{ p.name }}</a> <span class="muted">({{ p.sku }})</span></li>
+    {% else %}
+    <li class="muted">No products yet.</li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}

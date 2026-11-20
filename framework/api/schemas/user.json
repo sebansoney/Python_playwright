@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sample-shop.test/user.json",
+  "title": "User",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "email",
+    "full_name",
+    "phone",
+    "role",
+    "is_active",
+    "has_avatar",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "id": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "maxLength": 120
+    },
+    "full_name": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 60
+    },
+    "phone": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "role": {
+      "enum": [
+        "admin",
+        "user"
+      ]
+    },
+    "is_active": {
+      "type": "boolean"
+    },
+    "has_avatar": {
+      "type": "boolean"
+    },
+    "created_at": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?$",
+      "$comment": "ISO-8601 local time. App sends no timezone offset (see DEVELOPMENT_STATUS N8)."
+    },
+    "updated_at": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?$",
+      "$comment": "ISO-8601 local time. App sends no timezone offset (see DEVELOPMENT_STATUS N8)."
+    }
+  }
+}

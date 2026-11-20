@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Help center · Sample Shop Admin</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body class="help-body">
+  <h1>Help center</h1>
+  <details>
+    <summary>How do I add a product?</summary>
+    <p>Open <em>Products</em> and click <em>Add product</em>.</p>
+  </details>
+  <details>
+    <summary>How do I export data?</summary>
+    <p>Use <em>Export products (CSV)</em> on the Tools page.</p>
+  </details>
+
+  <form id="contact-form" data-testid="contact-form" novalidate>
+    <label for="contact-message">Message to support</label>
+    <textarea id="contact-message" rows="2" data-testid="contact-message"></textarea>
+    <button type="submit" class="btn btn-primary">Send message</button>
+    <p id="contact-status" role="status" data-testid="contact-status"></p>
+  </form>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

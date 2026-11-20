@@ -1,0 +1,7 @@
+# Local developer machine. Only list values that differ from config/config.yaml.
+reporting:
+  log_level: "DEBUG"
+
+# Developer machine: see every flaky failure immediately - no automatic reruns.
+retry:
+  max_reruns: 0

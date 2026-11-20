@@ -1,0 +1,86 @@
+# Default configuration shared by every environment.
+# Override per environment in config/environments/<env>.yaml,
+# then via .env / environment variables (prefix FW_, nested with "__"),
+# e.g.  FW_BROWSER__HEADLESS=false   FW_API__TIMEOUT_S=5
+#
+# Secrets (passwords, API keys) are NEVER stored here - see .env.example.
+
+app:
+  base_url: "http://127.0.0.1:8000"
+  api_prefix: "/api/v1"
+  health_path: "/api/v1/health"
+  autostart: true          # start the sample app automatically when tests need it
+  startup_timeout_s: 30
+
+browser:
+  name: "chromium"         # chromium | firefox | webkit  (CLI --browser wins)
+  headless: true           # CLI --headed wins
+  slow_mo_ms: 0
+  viewport_width: 1366
+  viewport_height: 768
+  default_timeout_ms: 10000
+  navigation_timeout_ms: 30000
+  expect_timeout_ms: 5000
+  screenshot: "only-on-failure"   # on | off | only-on-failure
+  video: "off"                    # on | off | retain-on-failure
+  trace: "retain-on-failure"      # on | off | retain-on-failure
+
+api:
+  timeout_s: 10
+  verify_ssl: true
+  slow_response_threshold_ms: 2000
+
+retry:
+  # Reruns ONLY for known transient infrastructure errors. Patterns are regular
+  # expressions matched against "<ExceptionClassName>: <message>" (bare class name,
+  # no module - that is what pytest-rerunfailures compares). AssertionError - which
+  # includes Playwright expect() failures - is NEVER rerun (enforced in code).
+  # Every rerun stays visible (terminal "R", Allure retries tab).
+  max_reruns: 2
+  delay_s: 1
+  only_rerun:
+    - "^ConnectError: "            # httpx: app/network not accepting connections
+    - "^ConnectTimeout: "          # httpx: connection could not be opened in time
+    - "^RemoteProtocolError: "     # httpx: server dropped the connection mid-response
+    - "^TargetClosedError: "       # Playwright: browser/page crashed or was closed
+    - "Browser has been closed"    # Playwright: browser process died
+
+reporting:
+  allure_results_dir: "reports/allure-results"
+  allure_report_dir: "reports/allure-report"
+  logs_dir: "logs"
+  log_level: "INFO"
+  allure_enabled: true             # results are written on every run (no --alluredir needed)
+  clean_results: true              # previous results are wiped once per run
+  attach_api_exchanges: "on-failure"   # always | on-failure | off
+  attach_browser_artifacts: true   # screenshot / trace / video of failed UI tests
+  attach_dom_snapshot: true        # redacted page HTML of failed UI tests
+
+redaction:
+  mask: "***REDACTED***"
+  mask_emails: false        # AI calls always mask emails regardless of this flag
+  sensitive_keys:
+    - password
+    - passwd
+    - secret
+    - token
+    - authorization
+    - cookie
+    - api_key
+    - apikey
+    - x-api-key
+    - session
+
+ai:
+  enabled: false            # opt-in; the framework never requires AI
+  provider: "claude"        # claude | none
+  model: "claude-opus-5-5"  # most capable Opus; set claude-sonnet-5-5 / claude-haiku-5-5 to cut cost
+  effort: "high"            # low | medium | high | xhigh | max  (analysis quality vs. tokens)
+  max_tokens: 16000
+  timeout_s: 300            # a single high-effort analysis can take minutes
+  max_retries: 2            # SDK retries 429 / 5xx / connection errors
+  max_calls_per_run: 20     # hard budget per process (CLI run or pytest session)
+  send_screenshots: false   # screenshots may show data - opt in explicitly
+  server_side_fallback: true  # if Claude declines a request, retry it on a fallback model
+  output_dir: "reports/ai"  # analyses and summaries (markdown + json)
+  drafts_dir: "ai_drafts"   # generated test code - NEVER collected, human review required

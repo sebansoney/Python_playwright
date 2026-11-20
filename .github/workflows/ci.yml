@@ -1,0 +1,203 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  schedule:
+    - cron: "0 2 * * *" # nightly full regression (UTC)
+  workflow_dispatch:
+    inputs:
+      ai_analysis:
+        description: "AI failure analysis + run summary (needs the ANTHROPIC_API_KEY secret)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  TEST_ENV: ci            # config/environments/ci.yaml: autostart app, 2 infra-only reruns
+  PYTHONUNBUFFERED: "1"
+  FORCE_COLOR: "1"
+
+jobs:
+  # --------------------------------------------------------------------------
+  quality:
+    name: Lint + framework self-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+      - name: Ruff lint
+        run: uv run ruff check .
+      - name: Ruff format check
+        run: uv run ruff format --check .
+      - name: Framework self-tests
+        run: uv run pytest -m unit -n auto
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: allure-results-unit
+          path: reports/allure-results
+          retention-days: 14
+
+  # --------------------------------------------------------------------------
+  api:
+    name: API tests
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+      - name: API tests (parallel)
+        run: uv run pytest tests/api -n 4
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: allure-results-api
+          path: reports/allure-results
+          retention-days: 14
+      - name: Upload logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: logs-api
+          path: logs/
+          retention-days: 7
+
+  # --------------------------------------------------------------------------
+  ui:
+    name: UI + integration (${{ matrix.browser }})
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+        with:
+          browser: ${{ matrix.browser }}
+      - name: UI + integration tests (parallel)
+        run: uv run pytest tests/ui tests/integration -n 4 --browser ${{ matrix.browser }}
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: allure-results-${{ matrix.browser }}
+          path: reports/allure-results
+          retention-days: 14
+      - name: Upload Playwright artifacts + logs (failures only)
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          # Traces contain the run's session cookie and typed test passwords; both are
+          # random per run and useless afterwards - still, keep retention short.
+          name: failure-artifacts-${{ matrix.browser }}
+          path: |
+            reports/playwright/
+            logs/
+          retention-days: 7
+
+  # --------------------------------------------------------------------------
+  report:
+    name: Allure report (+ optional AI analysis)
+    needs: [quality, api, ui]
+    if: always() && !cancelled()
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      ALLURE_VERSION: "2.41.0"
+      HAS_AI_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+
+      - name: Merge Allure results from all jobs
+        uses: actions/download-artifact@v8
+        with:
+          pattern: allure-results-*
+          merge-multiple: true
+          path: reports/allure-results
+
+      - name: Describe the run for Allure
+        run: |
+          uv run python - <<'EOF'
+          import json, os
+          from pathlib import Path
+          from framework.reporting.run_metadata import write_categories, write_environment
+          results = Path("reports/allure-results")
+          url = f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}"
+          write_categories(results)
+          write_environment(results, {
+              "Environment": "ci", "Browsers": "chromium, firefox, webkit",
+              "Commit": os.environ["GITHUB_SHA"][:12], "Ref": os.environ["GITHUB_REF_NAME"],
+              "Trigger": os.environ["GITHUB_EVENT_NAME"], "Runner": "ubuntu-latest",
+          })
+          (results / "executor.json").write_text(json.dumps({
+              "name": "GitHub Actions", "type": "github", "url": url, "buildUrl": url,
+              "buildOrder": int(os.environ["GITHUB_RUN_NUMBER"]),
+              "buildName": f"CI #{os.environ['GITHUB_RUN_NUMBER']}",
+              "reportName": "Automation Framework - CI",
+          }))
+          EOF
+
+      - name: Install Allure CLI ${{ env.ALLURE_VERSION }}
+        run: |
+          curl -fsSL -o allure.tgz \
+            "https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/${ALLURE_VERSION}/allure-commandline-${ALLURE_VERSION}.tgz"
+          tar -xzf allure.tgz -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/allure-${ALLURE_VERSION}/bin" >> "$GITHUB_PATH"
+
+      - name: Generate single-file Allure report
+        run: allure generate reports/allure-results -o reports/allure-report --clean --single-file
+
+      - name: Run summary (computed; AI narrative + failure analysis when enabled)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          FW_AI__ENABLED: ${{ env.HAS_AI_KEY == 'true' && (inputs.ai_analysis || vars.AI_ANALYSIS == 'true') }}
+        run: |
+          uv run python -m framework.ai summarize
+          if [ "$FW_AI__ENABLED" = "true" ]; then uv run python -m framework.ai analyze-failures --max 5; fi
+          {
+            echo "## Test results"
+            uv run python - <<'EOF'
+          # Computed from the merged results (a --single-file report has no widgets/ folder).
+          from pathlib import Path
+          from framework.ai.evidence import AllureResults
+          r = AllureResults(Path("reports/allure-results")).load()
+          s = r.by_status
+          print("| total | passed | failed | broken | skipped | duration |\n|---|---|---|---|---|---|")
+          print(f"| {r.total} | {s.get('passed', 0)} | {s.get('failed', 0)} | {s.get('broken', 0)} "
+                f"| {s.get('skipped', 0)} | {r.duration_ms / 1000:.0f} s |")
+          EOF
+            echo
+            cat "$(ls -t reports/ai/run_summary_*.md | head -1)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload Allure report
+        uses: actions/upload-artifact@v7
+        with:
+          name: allure-report
+          path: reports/allure-report/index.html
+          retention-days: 30
+
+      - name: Upload AI output
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ai-analysis
+          path: reports/ai/
+          if-no-files-found: ignore
+          retention-days: 30

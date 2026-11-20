@@ -1,0 +1,9 @@
+# TEMPLATE ONLY - shows how a remote environment would be configured.
+# There is no real staging server for the sample application.
+app:
+  base_url: "https://staging.example.com"
+  autostart: false
+
+api:
+  timeout_s: 20
+  slow_response_threshold_ms: 4000

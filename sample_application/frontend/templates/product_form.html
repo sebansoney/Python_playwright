@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field, select %}
+{% set editing = product is not none %}
+{% block title %}{{ "Edit product" if editing else "Add product" }}{% endblock %}
+{% block content %}
+<section class="card narrow">
+  <h1>{{ "Edit product" if editing else "Add product" }}</h1>
+  <form method="post" action="{{ '/products/%d/edit' % product.id if editing else '/products/new' }}" novalidate data-testid="product-form">
+    {{ field("name", "Name", form, errors, required=true) }}
+    {{ field("sku", "SKU", form, errors, required=true, extra='placeholder="e.g. EL-1234"') }}
+    {{ select("category", "Category", categories, form.get("category"), errors, placeholder="Select a category", required=true) }}
+    {{ field("price", "Price", form, errors, type="number", required=true, extra='step="0.01" min="0"') }}
+    {{ field("stock", "Stock", form, errors, type="number", extra='step="1" min="0"') }}
+    <div class="field{% if errors.get('description') %} has-error{% endif %}">
+      <label for="description">Description</label>
+      <textarea id="description" name="description" rows="3" maxlength="500" data-testid="description-input"
+        {% if errors.get('description') %}aria-invalid="true" aria-describedby="description-error"{% endif %}>{{ form.get("description", "") }}</textarea>
+      {% if errors.get('description') %}<p class="error" id="description-error" data-testid="description-error">{{ errors['description'] }}</p>{% endif %}
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">{{ "Save changes" if editing else "Create product" }}</button>
+      <a href="/products" class="btn">Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

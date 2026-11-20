@@ -1,0 +1,40 @@
+name: Set up test environment
+description: >
+  Install uv + Python 3.12 + locked dependencies, and create throw-away credentials for
+  the sample application's test accounts (random per run, masked in logs, no secrets needed).
+
+inputs:
+  browser:
+    description: Playwright browser to install (empty = none)
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Install uv
+      uses: astral-sh/setup-uv@v10.3.3
+      with:
+        enable-cache: true
+
+    - name: Install Python + locked dependencies
+      shell: bash
+      run: uv sync --locked
+
+    - name: Install Playwright browser (${{ inputs.browser }})
+      if: inputs.browser != ''
+      shell: bash
+      run: uv run playwright install --with-deps "${{ inputs.browser }}"
+
+    - name: Generate throw-away test-account credentials
+      shell: bash
+      run: |
+        # The sample app seeds its accounts from these variables at start-up, and the
+        # framework reads the same ones - so every run uses fresh, unpublished passwords.
+        for role in ADMIN USER; do
+          password="Ci-$(openssl rand -hex 12)-7"
+          echo "::add-mask::${password}"
+          echo "FW_CREDENTIALS__${role}_PASSWORD=${password}" >> "$GITHUB_ENV"
+        done
+        echo "FW_CREDENTIALS__ADMIN_USERNAME=admin@example.test" >> "$GITHUB_ENV"
+        echo "FW_CREDENTIALS__USER_USERNAME=user@example.test" >> "$GITHUB_ENV"
