@@ -1,0 +1,20 @@
+# Normalise line endings: the repository stores LF; Windows checkouts may use CRLF
+# for ordinary text files, but scripts that must run unchanged keep a fixed ending.
+* text=auto
+
+# Shell scripts break with CRLF ("$'\r': command not found") - always LF.
+*.sh text eol=lf
+
+# CI and tooling files read on Linux runners - always LF.
+*.yml text eol=lf
+*.yaml text eol=lf
+.python-version text eol=lf
+
+# Windows PowerShell scripts - CRLF is the native ending.
+*.ps1 text eol=crlf
+
+# Binary assets - never touch.
+*.png binary
+*.jpg binary
+*.zip binary
+*.db binary
