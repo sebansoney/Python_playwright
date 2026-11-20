@@ -1,5 +1,7 @@
 ﻿# AI-Powered Python Automation Framework (UI + API)
 
+[![CI](https://github.com/sebansoney/Python_playwright/actions/workflows/ci.yml/badge.svg)](https://github.com/sebansoney/Python_playwright/actions/workflows/ci.yml)
+
 Playwright + pytest framework for **UI, REST API and UI+API integration** testing, with
 Allure reporting, parallel execution, GitHub Actions CI and an optional, advisory AI layer
 (Claude). It ships with a locally runnable sample application (FastAPI + SQLite) used as the

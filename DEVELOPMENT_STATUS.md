@@ -3,8 +3,9 @@
 _Last updated: 2026-11-20_
 
 ## Current state
-**All 10 phases complete.** Two items can only be verified with your input (see
-"Needs your action"): the first real Claude API call and the first run on GitHub Actions.
+**All 10 phases complete.** Repository: <https://github.com/sebansoney/Python_playwright> (public).
+**First GitHub Actions run green** (run #1, `bd25abb`). One item still needs your input: the
+first real Claude API call (see "Needs your action").
 
 | Area | Result of the final regression (Phase 10) |
 |---|---|
@@ -13,7 +14,8 @@ _Last updated: 2026-11-20_
 | Same, CI configuration (`--env ci`, random passwords, reruns active) | 336 passed, 1 skipped, **0 reruns needed** |
 | Clean copy of the repository (only versionable files), fresh setup | setup self-tests 75/75; whole suite 226 passed, 1 skipped |
 | Lint / format (ruff) | clean |
-| Secret scans (results, sample report, AI prompts) | 0 findings |
+| Secret scans (results, sample report, AI prompts, committed files) | 0 findings |
+| **GitHub Actions run #1** (Ubuntu, 2026-11-20) | all 6 jobs green: lint + self-tests 27 s, API 22 s, UI + integration Chromium 1m27s / WebKit 1m42s / Firefox 2m21s, report 23 s; artifacts incl. merged `allure-report` |
 
 ## Phase summary
 | Phase | Delivered | Key verification |
@@ -55,13 +57,12 @@ _Last updated: 2026-11-20_
 | Item | How |
 |---|---|
 | First real Claude call | Add `ANTHROPIC_API_KEY` to `.env`, then `FW_AI_LIVE=1 uv run pytest tests/ai_live -m ai_live` (one small, low-effort call). Then optionally `FW_AI__ENABLED=true uv run pytest --ai-analysis`. |
-| First GitHub Actions run | Create an empty GitHub repository, make the first commit, add the remote and push (I can do the git steps once you give the URL and approve the push). |
 
 ## Known issues / accepted limitations
 | ID | Issue | Status |
 |---|---|---|
 | N1 | `C:\Users\sebastianj\.local\bin\python3.12.exe` exists, not managed by uv; unused | Delete manually if not needed |
-| N3 | No GitHub remote and no commits yet | Needs your repository + approval |
+| N3 | ~~No GitHub remote~~ | **Resolved:** pushed to GitHub, CI run #1 green |
 | N4 | Swagger UI (`/docs`) needs internet (CDN assets) | Accepted |
 | N5 | No CSRF protection on web forms (demo app) | Accepted, documented |
 | N6 | Playwright traces contain the session cookie and typed test values | Kept only on failure; test accounts only (random per run in CI); never sent to AI |
@@ -76,7 +77,7 @@ _Last updated: 2026-11-20_
 | N15 | No static type checker (mypy/pyright) in the pipeline - type hints are not machine-verified | Optional follow-up |
 
 ## Possible next steps (optional)
-1. Connect GitHub and run CI; then optionally publish the Allure report to GitHub Pages with trend history.
+1. Optionally publish the Allure report to GitHub Pages with trend history.
 2. Run the live AI checks with an API key.
 3. Add a static type checker (pyright or mypy) to the `quality` CI job.
 4. Point the framework at a real application: add `config/environments/<env>.yaml`, page objects and clients for it.
